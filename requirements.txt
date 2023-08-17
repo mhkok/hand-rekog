@@ -1,0 +1,8 @@
+datasets
+pillow
+wandb
+torch
+matplotlib 
+tf.keras
+tensorflow
+numpy
