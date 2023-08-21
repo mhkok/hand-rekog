@@ -77,9 +77,9 @@ def prepare_data(dataset):
 prepare_data(train_loader)
 prepare_data(test_loader)
 
+test_data = np.array(test_data, dtype="float32") / 255.0
+test_targets = np.array(test_targets, dtype="float32") 
 train_data = np.array(train_data, dtype="float32") / 255.0
-test_data = np.array(train_targets, dtype="float32") / 255.0
-test_targets = np.array(train_data, dtype="float32")
 train_targets = np.array(train_targets, dtype="float32")
 
 # load the VGG16 network, ensuring the head FC layers are left off
