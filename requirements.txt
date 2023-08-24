@@ -6,3 +6,5 @@ matplotlib
 tf.keras
 tensorflow
 numpy
+imutils
+opencv-python
