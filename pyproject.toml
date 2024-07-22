@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "hand-rekog"
+version = "0.1.0"
+description = ""
+authors = ["mhkok"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.10.14"
+pandas = "*"
+random2 = "*"
+datasets = "*"
+matplotlib = "^3.9.0"
+wandb = "^0.17.3"
+imutils = "^0.5.4"
+opencv-python = "^4.10.0.84"
+pillow = "^10.4.0"
+tensorflow-macos = "2.14.0"
+tensorflow-metal = "^1.1.0"
+tensorflow = "2.14"
+pydot = "^2.0.0"
+graphviz = "^0.20.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+package-mode = false

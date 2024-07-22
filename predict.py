@@ -75,4 +75,3 @@ cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
 # show the output image
 cv2.imshow("Output", image)
 cv2.waitKey(0)
-    

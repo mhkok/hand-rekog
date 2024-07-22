@@ -1,5 +1,6 @@
-from datasets import load_dataset
+## Largely based on https://pyimagesearch.com/2020/10/05/object-detection-bounding-box-regression-with-keras-tensorflow-and-deep-learning/
 
+from datasets import load_dataset
 from config import config
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import Flatten
@@ -7,13 +8,16 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.utils import plot_model
 from dataset import preprocessing
 import matplotlib.pyplot as plt
 import numpy as np
 import wandb
+from wandb.integration.keras import WandbMetricsLogger, WandbModelCheckpoint
 from PIL import Image
 
-
+wandb.require("core")
 wandb.login()
 run = wandb.init(project="hand-rekog")
 
@@ -33,7 +37,6 @@ test_loader = load_dataset("Francesco/hand-gestures-jps7z", split="test")
 
 train_data, train_targets = preprocessing.prepare_data(train_loader)
 test_data, test_targets = preprocessing.prepare_data(test_loader)
-
 
 # load the VGG16 network, ensuring the head FC layers are left off
 vgg = VGG16(
@@ -60,11 +63,10 @@ model = Model(inputs=vgg.input, outputs=bboxHead)
 
 # initialize the optimizer, compile the model, and show the modelx
 # summary
-opt = Adam(lr=1e-4)
+opt = Adam(learning_rate=1e-4)
 model.compile(loss="mse", optimizer=opt)
+callbacks = [EarlyStopping(patience=10), WandbMetricsLogger()]
 print(model.summary())
-print(train_data.shape)
-print(train_targets.shape)
 
 # train the network for bounding box regression
 print("[INFO] training bounding box regressor...")
@@ -75,26 +77,12 @@ H = model.fit(
     batch_size=config.BATCH_SIZE,
     epochs=config.NUM_EPOCHS,
     verbose=1,
+    callbacks=callbacks
 )
-
-# ✨ W&B: Create a Table to store predictions for each test step
-columns = ["id", "image", "guess", "truth"]
-for digit in range(10):
-    columns.append("score_" + str(digit))
-test_table = wandb.Table(columns=columns)
 
 # serialize the model to disk
 print("[INFO] saving object detector model...")
-model.save(config.MODEL_PATH, save_format="h5")
+model.save(config.MODEL_PATH)
 
-# plot the model training history
-N = config.NUM_EPOCHS
-plt.style.use("ggplot")
-plt.figure()
-plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
-plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
-plt.title("Bounding Box Regression Loss on Training Set")
-plt.xlabel("Epoch #")
-plt.ylabel("Loss")
-plt.legend(loc="lower left")
-plt.savefig(config.PLOTS_PATH)
+# Visualize the model
+plot_model(model, to_file="model_architecture.png", show_shapes=True, show_layer_names=True)

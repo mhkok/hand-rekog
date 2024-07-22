@@ -18,6 +18,7 @@ def coco_to_pascal_voc(coco_bbox):
 def prepare_data(dataset):
     train_data = []
     test_data = []
+    eval_data = []
     train_targets = []
     test_targets = []
 
@@ -42,51 +43,35 @@ def prepare_data(dataset):
             image_bytes.seek(0)
 
             image = load_img(image_bytes, target_size=(224, 224))
-            # print(image.size)
             image = img_to_array(image)
 
         else:
             print("Bounding box not found for this hand.")
             continue
 
-        if dataset == "train_loader":
+        if dataset.split == "train":
             train_data.append(image)
             train_targets.append([x_min, y_min, x_max, y_max])
 
-        else:
+        if dataset.split == "test":
             test_data.append(image)
             test_targets.append([x_min, y_min, x_max, y_max])
 
-    if dataset == "train_loader":
+        else:
+            eval_data.append(image)
+
+    if dataset.split == "train":
         # convert to numpy array
         train_data = np.array(train_data, dtype="float32") / 255.0
         train_targets = np.array(train_targets, dtype="float32")
 
         return train_data, train_targets
-    else:
+    if dataset.split == "test":
         # convert to numpy array
         test_data = np.array(test_data, dtype="float32") / 255.0
         test_targets = np.array(test_targets, dtype="float32")
-
         return test_data, test_targets
-
-# convenience funtion to log predictions for a batch of test images
-def log_test_predictions(
-    images, labels, outputs, predicted, test_table, log_counter
-):
-    # obtain confidence scores for all classes
-    scores = tf.nn.softmax(outputs.data, dim=1)
-    log_scores = scores.cpu().numpy()
-    log_images = images.cpu().numpy()
-    log_labels = labels.cpu().numpy()
-    log_preds = predicted.cpu().numpy()
-    # adding ids based on the order of the images
-    _id = 0
-    for i, l, p, s in zip(log_images, log_labels, log_preds, log_scores):
-        # add required info to data table:
-        # id, image pixels, model's guess, true label, scores for all classes
-        img_id = str(_id) + "_" + str(log_counter)
-        test_table.add_data(img_id, wandb.Image(i), p, l, *s)
-        _id += 1
-        if _id == 641:
-            break
+    else:
+        eval_data = np.array(eval_data, dtype="float32") / 255.0
+        return eval_data
+        
